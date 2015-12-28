@@ -17,8 +17,8 @@ if (hasGetUserMedia()) {
                           navigator.mozGetUserMedia ||
                           navigator.msGetUserMedia;
   console.log(navigator);
-  if(navigator.webkitGetUserMedia){
-    navigator.webkitGetUserMedia({audio: true}, function(stream) {
+  if(navigator.getUserMedia){
+    navigator.getUserMedia({audio: true}, function(stream) {
       var microphone = context.createMediaStreamSource(stream);
       var filter = context.createBiquadFilter();
   
