@@ -155,18 +155,18 @@ function altimeterCalc(){
       } else {
         beeps[2]++;
       }
-      if(beeps[0]>39){
-        moveOn();
-      }
       if(beeps[2]>40&&ableToSwitchAlttoBat){
         onAlt = false;
         beeps = [0,0,0];
         ableToSwitchAlttoBat = false;
         console.log("Switched to Battery");
       }
-      if(countToFinish===5){
+      if(countToFinish==3){
         done();
         terminateCheck();
+      }
+      if(beeps[0]>39){
+        moveOn();
       }
     } else if(testAltimeter()==2){
       run = true;
@@ -221,7 +221,7 @@ function enableSwitch(){
 }
 
 function terminateCheck(){
-  over = true
+  over = true;
 }
 
 window.addEventListener('load',initMic(), false);
