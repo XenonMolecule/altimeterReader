@@ -22,43 +22,44 @@ function hasGetUserMedia() {
   return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
             navigator.mozGetUserMedia || navigator.msGetUserMedia);
 }
-
-if (hasGetUserMedia()) {
-  // Good to go!
-  console.log("Browser Supported");
+function initMic(){
+  if (hasGetUserMedia()) {
+    // Good to go!
+    console.log("Browser Supported");
+    
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
   
-  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
-  var context = new AudioContext();
-
-  navigator.getUserMedia  = navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMedia ||
-                          navigator.msGetUserMedia;
-  if(navigator.getUserMedia){
-    navigator.getUserMedia({audio: true}, function(stream) {
-      audio = stream;
-      microphone = context.createMediaStreamSource(stream);
-      var filter = context.createBiquadFilter();
+    var context = new AudioContext();
   
-      // microphone -> filter -> destination.
-      microphone.connect(filter);
-      console.log("Access Gained")
-    }, function(e) { console.log('Ouch, get some ointment for that burn, because you were denied ', e)});
+    navigator.getUserMedia  = navigator.getUserMedia ||
+                            navigator.webkitGetUserMedia ||
+                            navigator.mozGetUserMedia ||
+                            navigator.msGetUserMedia;
+    if(navigator.getUserMedia){
+      navigator.getUserMedia({audio: true}, function(stream) {
+        audio = stream;
+        microphone = context.createMediaStreamSource(stream);
+        var filter = context.createBiquadFilter();
+    
+        // microphone -> filter -> destination.
+        microphone.connect(filter);
+        console.log("Access Gained")
+        delayMp3(context);
+      }, function(e) { console.log('Ouch, get some ointment for that burn, because you were denied ', e)});
+    } else {
+      //failed test 2
+      alert("Sorry your internet browser is not currently supported");
+      console.log("Unsupported Browser Test 2");
+    }
   } else {
-    //failed test 2
-    alert("Sorry your internet browser is not currently supported");
-    console.log("Unsupported Browser Test 2");
+    //failed test 1
+    alert("Sorry, your internet browser is not currently supported");
+    console.log("Unsupported Browser")
   }
-} else {
-  //failed test 1
-  alert("Sorry, your internet browser is not currently supported");
-  console.log("Unsupported Browser")
 }
 
-function initMp3Player(){
+function initMp3Player(context){
   console.log("initializing Mp3 analyzer");
-	microphone.muted = true;
 	analyser = context.createAnalyser(); // AnalyserNode method
 	canvas = document.getElementById('analyser_render');
 	ctx = canvas.getContext('2d');
@@ -126,10 +127,8 @@ function isItABreak(min,max,stage){
   }
 }
 
-window.addEventListener('load',delayMp3(),false);
-
-function delayMp3(){
-  setTimeout(initMp3Player,3000);
+function delayMp3(theContext){
+  setTimeout(initMp3Player,1000,theContext);
 }
 
 function altimeterCalc(){
@@ -139,7 +138,9 @@ function altimeterCalc(){
       var output = testAltimeter();
       if(output == 0){
         beeps[0]++;
-        continuation = false;
+        if(beeps[0]>20){
+          continuation = false;
+        }
       } else if(output==1){
         if(!continuation){
           counter++;
@@ -168,6 +169,7 @@ function altimeterCalc(){
     } else if(testAltimeter()==2){
       run = true;
       setTimeout(enableSwitch,3000);
+      console.log("listening");
     }
   }
 }
@@ -191,10 +193,10 @@ function done(){
   altitude = 0;
   battery = 0;
   for(var i = 0; i<altDigits.length;i++){
-    altitude+=altDigits[i]*(10^(-(i-(altDigits.length-1))));
+    altitude+=altDigits[i]*(EE(-(i-(altDigits.length-1))));
   }
   for(var i = 0; i<batDigits.length;i++){
-    battery+=batDigits[i]*(10^(-(i-1)));
+    battery+=batDigits[i]*EE(-(i-1));
   }
   terminateCheck();
   console.log("altitude: "+altitude+" feet");
@@ -207,4 +209,14 @@ function enableSwitch(){
 
 function terminateCheck(){
   over = true
+}
+
+window.addEventListener('load',initMic(), false);
+
+function EE(exp){
+  var theOutput = 1;
+  for(var i = 0; i < exp; i++){
+    theOutput*=10;
+  }
+  return theOutput;
 }
