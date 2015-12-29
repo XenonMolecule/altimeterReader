@@ -158,9 +158,11 @@ function altimeterCalc(){
       if(beeps[0]>39){
         moveOn();
       }
-      if(beeps[2]>20&&ableToSwitchAlttoBat){
+      if(beeps[2]>40&&ableToSwitchAlttoBat){
         onAlt = false;
         beeps = [0,0,0];
+        ableToSwitchAlttoBat = false;
+        console.log("Switched to Battery");
       }
       if(countToFinish===5){
         done();
@@ -168,7 +170,7 @@ function altimeterCalc(){
       }
     } else if(testAltimeter()==2){
       run = true;
-      setTimeout(enableSwitch,3000);
+      setTimeout(enableSwitch,4000);
       console.log("listening");
     }
   }
@@ -176,22 +178,33 @@ function altimeterCalc(){
 
 function moveOn(){
   //console.log("moving on")
-  if(beeps[1]==10){
-    beeps[1]=0;
+  if(beeps[1]!=0){
+    if(beeps[1]>=10){
+      beeps[1]=0;
+    }
+    if(onAlt){
+      altDigits.push(beeps[1]);
+    } else if(!onAlt){
+      batDigits.push(beeps[1]);
+      countToFinish++;
+    }
+    beeps = [0,0,0];
   }
-  if(onAlt){
-    altDigits.push(beeps[1]);
-  } else if(!onAlt){
-    batDigits.push(beeps[1]);
-    countToFinish++;
-  }
-  beeps = [0,0,0];
 }
 
 function done(){
   console.log("done");
   altitude = 0;
   battery = 0;
+  if(altDigits[1]<=2){
+    altDigits[1] = 0;
+  }
+  if(altDigits[0]<=2){
+    altDigits[0] = 0;
+  }
+  if(batDigits[0]<=2){
+    batDigits[0] = 0;
+  }
   for(var i = 0; i<altDigits.length;i++){
     altitude+=altDigits[i]*(EE(-(i-(altDigits.length-1))));
   }
@@ -215,8 +228,13 @@ window.addEventListener('load',initMic(), false);
 
 function EE(exp){
   var theOutput = 1;
-  for(var i = 0; i < exp; i++){
+  var fakeExp=Math.abs(exp);
+  for(var i = 0; i < fakeExp; i++){
     theOutput*=10;
   }
-  return theOutput;
+  if(exp>=0){
+    return theOutput;
+  } else {
+    return (1/theOutput);
+  }
 }
